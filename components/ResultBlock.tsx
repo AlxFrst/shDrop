@@ -2,11 +2,14 @@
 
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface ResultBlockProps {
   downloadUrl: string;
   wgetCommand: string;
   curlCommand: string;
+  curlUploadCommand?: string;
+  expiresInHours?: number;
   onShowToast: (message: string) => void;
 }
 
@@ -14,9 +17,12 @@ export default function ResultBlock({
   downloadUrl,
   wgetCommand,
   curlCommand,
+  curlUploadCommand,
+  expiresInHours,
   onShowToast,
 }: ResultBlockProps) {
   const [copiedItem, setCopiedItem] = useState<string | null>(null);
+  const [showQR, setShowQR] = useState(false);
 
   const copyToClipboard = async (text: string, label: string) => {
     try {
@@ -81,32 +87,61 @@ export default function ResultBlock({
       >
         <span className="text-xl">✔</span>
         <span className="font-semibold">Fichier reçu !</span>
+        {expiresInHours && (
+          <span className="text-[#666666] text-sm ml-2">
+            (expire dans {expiresInHours}h)
+          </span>
+        )}
       </motion.div>
 
-      {/* Download URL */}
+      {/* Download URL with QR Code */}
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-sm">
           <span className="text-[#666666]">{'>'}</span>
           <span className="text-[#00ff99]">Ton fichier est disponible ici :</span>
         </div>
-        <div className="group relative">
-          <a
-            href={downloadUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block bg-[#1a1a1a] border border-[#33ccff]/30 rounded p-3 pr-12 overflow-x-auto hover:border-[#33ccff]/60 transition-colors"
-          >
-            <code className="text-[#33ccff] text-sm break-all underline">
-              {downloadUrl}
-            </code>
-          </a>
+        <div className="flex gap-4">
+          <div className="group relative flex-1">
+            <a
+              href={downloadUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block bg-[#1a1a1a] border border-[#33ccff]/30 rounded p-3 pr-12 overflow-x-auto hover:border-[#33ccff]/60 transition-colors"
+            >
+              <code className="text-[#33ccff] text-sm break-all underline">
+                {downloadUrl}
+              </code>
+            </a>
+            <button
+              onClick={() => copyToClipboard(downloadUrl, 'URL')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#33ccff]/10 hover:bg-[#33ccff]/20 border border-[#33ccff]/30 rounded text-[#33ccff] text-xs transition-all"
+            >
+              {copiedItem === 'URL' ? '✓' : '📋'}
+            </button>
+          </div>
           <button
-            onClick={() => copyToClipboard(downloadUrl, 'URL')}
-            className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#33ccff]/10 hover:bg-[#33ccff]/20 border border-[#33ccff]/30 rounded text-[#33ccff] text-xs transition-all"
+            onClick={() => setShowQR(!showQR)}
+            className="px-4 py-3 bg-[#33ccff]/10 hover:bg-[#33ccff]/20 border border-[#33ccff]/30 rounded text-[#33ccff] text-sm transition-all whitespace-nowrap"
           >
-            {copiedItem === 'URL' ? '✓' : '📋'}
+            {showQR ? '✕' : '📱'} QR
           </button>
         </div>
+
+        {/* QR Code */}
+        {showQR && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex justify-center p-4 bg-white rounded"
+          >
+            <QRCodeSVG
+              value={downloadUrl}
+              size={200}
+              level="M"
+              includeMargin={true}
+            />
+          </motion.div>
+        )}
       </div>
 
       {/* Commands */}
@@ -117,10 +152,17 @@ export default function ResultBlock({
           copyLabel="wget"
         />
         <CommandLine
-          label="curl"
+          label="curl (download)"
           command={curlCommand}
           copyLabel="curl"
         />
+        {curlUploadCommand && (
+          <CommandLine
+            label="curl -T (upload)"
+            command={curlUploadCommand}
+            copyLabel="curl -T"
+          />
+        )}
       </div>
 
       {/* New upload button */}

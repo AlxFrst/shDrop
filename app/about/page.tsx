@@ -26,6 +26,12 @@ export default function About() {
         >
           [About]
         </Link>
+        <Link
+          href="/stats"
+          className="text-[#666666] hover:text-[#00ff99] transition-colors"
+        >
+          [Stats]
+        </Link>
       </motion.div>
 
       {/* Content */}

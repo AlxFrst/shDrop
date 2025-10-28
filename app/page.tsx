@@ -14,7 +14,9 @@ interface UploadResult {
   download_url: string;
   wget: string;
   curl: string;
+  curl_upload?: string;
   filename: string;
+  expires_in_hours?: number;
 }
 
 export default function Home() {
@@ -132,6 +134,12 @@ export default function Home() {
         >
           [About]
         </Link>
+        <Link
+          href="/stats"
+          className="text-[#666666] hover:text-[#00ff99] transition-colors"
+        >
+          [Stats]
+        </Link>
       </motion.div>
 
       {/* Zone d'upload ou résultats */}
@@ -151,6 +159,8 @@ export default function Home() {
           downloadUrl={uploadResult.download_url}
           wgetCommand={uploadResult.wget}
           curlCommand={uploadResult.curl}
+          curlUploadCommand={uploadResult.curl_upload}
+          expiresInHours={uploadResult.expires_in_hours}
           onShowToast={showToastMessage}
         />
       )}
